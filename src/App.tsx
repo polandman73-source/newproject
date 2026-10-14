@@ -1,14 +1,18 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 function App() {
-  const [elo, setElo] = useState(2347)
+  const [elo] = useState(2347)
   const [animatedElo, setAnimatedElo] = useState(0)
   const [winRate] = useState(67.3)
   const [matches] = useState(1842)
   const [kills] = useState(12847)
   const [kd] = useState(1.84)
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
+  const [isVisible, setIsVisible] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    setIsVisible(true)
     const target = elo
     const duration = 2000
     const start = Date.now()
@@ -22,179 +26,208 @@ function App() {
     return () => clearInterval(timer)
   }, [elo])
 
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePos({ x: e.clientX, y: e.clientY })
+    }
+    window.addEventListener('mousemove', handleMouseMove)
+    return () => window.removeEventListener('mousemove', handleMouseMove)
+  }, [])
+
   return (
-    <div className="min-h-screen bg-[#1a1a2e] text-white font-sans relative overflow-hidden">
-      {/* Background effects */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#0f0f1a] via-[#1a1a2e] to-[#0f0f1a]" />
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-[#ff5500] opacity-5 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-[#ff5500] opacity-3 rounded-full blur-3xl" />
-      
-      {/* Grid pattern overlay */}
-      <div className="absolute inset-0 opacity-[0.03]" style={{
-        backgroundImage: 'linear-gradient(rgba(255,85,0,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,85,0,0.3) 1px, transparent 1px)',
-        backgroundSize: '50px 50px'
+    <div 
+      ref={containerRef}
+      className="min-h-screen bg-[#0a0a0f] text-white font-sans relative overflow-hidden"
+    >
+      {/* Animated background */}
+      <div className="fixed inset-0">
+        <div 
+          className="absolute w-[500px] h-[500px] rounded-full opacity-[0.07] blur-3xl transition-all duration-700 ease-out"
+          style={{ 
+            background: 'radial-gradient(circle, #ff5500, transparent)',
+            left: mousePos.x - 250,
+            top: mousePos.y - 250,
+          }}
+        />
+        <div className="absolute top-[-200px] left-[-200px] w-[600px] h-[600px] bg-[#ff5500] opacity-[0.04] rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-[-200px] right-[-200px] w-[500px] h-[500px] bg-[#ff5500] opacity-[0.03] rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+      </div>
+
+      {/* Scanline effect */}
+      <div className="fixed inset-0 pointer-events-none opacity-[0.02]" style={{
+        backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.03) 2px, rgba(255,255,255,0.03) 4px)',
       }} />
 
-      <div className="relative z-10 max-w-2xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex items-center justify-center mb-8">
-          <div className="flex items-center gap-2 bg-[#2d2d44] px-4 py-2 rounded-full border border-[#3d3d5c]">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-            <span className="text-sm text-gray-400">ONLINE</span>
+      {/* Noise texture */}
+      <div className="fixed inset-0 pointer-events-none opacity-[0.015]" style={{
+        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+      }} />
+
+      <div className={`relative z-10 max-w-xl mx-auto px-4 py-10 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        
+        {/* Top status bar */}
+        <div className="flex items-center justify-between mb-10">
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <div className="w-2 h-2 bg-green-500 rounded-full" />
+              <div className="absolute inset-0 w-2 h-2 bg-green-500 rounded-full animate-ping" />
+            </div>
+            <span className="text-xs text-gray-500 uppercase tracking-[0.2em] font-medium">Online</span>
           </div>
+          <div className="text-xs text-gray-600 font-mono">2026</div>
         </div>
 
         {/* Avatar & Name */}
-        <div className="flex flex-col items-center mb-8">
-          <div className="relative mb-4">
-            <div className="w-32 h-32 rounded-full bg-gradient-to-br from-[#ff5500] to-[#ff8800] p-1">
-              <div className="w-full h-full rounded-full bg-[#1a1a2e] flex items-center justify-center">
-                <span className="text-4xl font-bold text-[#ff5500]">H</span>
+        <div className="flex flex-col items-center mb-10">
+          <div className="relative mb-5">
+            {/* Outer ring */}
+            <div className="absolute inset-[-4px] rounded-full bg-gradient-to-br from-[#ff5500] via-[#ff8800] to-[#ff5500] opacity-80 animate-spin" style={{ animationDuration: '8s' }} />
+            <div className="absolute inset-[-4px] rounded-full bg-gradient-to-br from-[#ff5500] via-[#ff8800] to-[#ff5500] blur-md opacity-40" />
+            
+            {/* Avatar */}
+            <div className="relative w-28 h-28 rounded-full bg-[#0a0a0f] flex items-center justify-center border-2 border-[#1a1a2e]">
+              <div className="text-center">
+                <span className="text-3xl font-black text-[#ff5500] tracking-tighter">H</span>
               </div>
             </div>
+            
             {/* Level badge */}
-            <div className="absolute -bottom-2 -right-2 bg-[#ff5500] text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg border-3 border-[#1a1a2e] shadow-lg shadow-[#ff5500]/30">
+            <div className="absolute -bottom-1 -right-1 bg-gradient-to-br from-[#ff5500] to-[#cc4400] text-white w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm border-2 border-[#0a0a0f] shadow-lg shadow-[#ff5500]/40">
               9
             </div>
           </div>
           
-          <h1 className="text-3xl font-bold mb-1 tracking-tight">
-            <span className="text-[#ff5500]">h1nixx</span>
+          <h1 className="text-3xl font-black tracking-tight mb-1">
+            <span className="bg-gradient-to-r from-[#ff5500] to-[#ff8800] bg-clip-text text-transparent">h1nixx</span>
           </h1>
-          <p className="text-gray-400 text-sm">Competitive Player • Micro Mobility Legend</p>
+          <p className="text-gray-500 text-xs uppercase tracking-[0.3em] font-medium">Competitive Player</p>
         </div>
 
         {/* FACEIT Level Card */}
-        <div className="bg-[#2d2d44]/80 backdrop-blur-sm rounded-xl border border-[#3d3d5c] p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#ff5500]/20 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-[#ff5500]" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-                </svg>
+        <div className="relative group mb-5">
+          <div className="absolute inset-0 bg-gradient-to-r from-[#ff5500]/20 to-transparent rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          <div className="relative bg-[#12121a]/90 backdrop-blur-xl rounded-2xl border border-[#1f1f2e] p-5 hover:border-[#ff5500]/30 transition-all duration-500">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-[#ff5500]/20 to-[#ff5500]/5 rounded-xl flex items-center justify-center border border-[#ff5500]/20">
+                  <svg className="w-5 h-5 text-[#ff5500]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-[10px] text-gray-500 uppercase tracking-[0.2em]">FACEIT Level</p>
+                  <p className="text-xl font-bold text-white">Level 9</p>
+                </div>
               </div>
-              <div>
-                <p className="text-xs text-gray-400 uppercase tracking-wider">FACEIT Level</p>
-                <p className="text-2xl font-bold text-white">Level 9</p>
+              <div className="text-right">
+                <p className="text-[10px] text-gray-500 uppercase tracking-[0.2em]">ELO</p>
+                <p className="text-xl font-bold text-[#ff5500] font-mono">{animatedElo.toLocaleString()}</p>
               </div>
             </div>
-            <div className="text-right">
-              <p className="text-xs text-gray-400 uppercase tracking-wider">ELO Rating</p>
-              <p className="text-2xl font-bold text-[#ff5500]">{animatedElo.toLocaleString()}</p>
-            </div>
-          </div>
-          
-          {/* ELO Progress bar */}
-          <div className="mt-4">
-            <div className="flex justify-between text-xs text-gray-500 mb-1">
-              <span>2000</span>
-              <span>2500</span>
-            </div>
-            <div className="h-2 bg-[#1a1a2e] rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-gradient-to-r from-[#ff5500] to-[#ff8800] rounded-full transition-all duration-2000 ease-out"
-                style={{ width: `${((elo - 2000) / 500) * 100}%` }}
-              />
+            
+            {/* ELO Progress bar */}
+            <div className="relative">
+              <div className="flex justify-between text-[10px] text-gray-600 mb-1.5 font-mono">
+                <span>2000</span>
+                <span>2500</span>
+              </div>
+              <div className="h-1.5 bg-[#1a1a2e] rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-[#ff5500] to-[#ff8800] rounded-full relative"
+                  style={{ width: `${((elo - 2000) / 500) * 100}%` }}
+                >
+                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-white rounded-full shadow-lg shadow-[#ff5500]/50 border-2 border-[#ff5500]" />
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <div className="bg-[#2d2d44]/80 backdrop-blur-sm rounded-xl border border-[#3d3d5c] p-4 text-center">
-            <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Win Rate</p>
-            <p className="text-xl font-bold text-green-400">{winRate}%</p>
-          </div>
-          <div className="bg-[#2d2d44]/80 backdrop-blur-sm rounded-xl border border-[#3d3d5c] p-4 text-center">
-            <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Matches</p>
-            <p className="text-xl font-bold text-white">{matches.toLocaleString()}</p>
-          </div>
-          <div className="bg-[#2d2d44]/80 backdrop-blur-sm rounded-xl border border-[#3d3d5c] p-4 text-center">
-            <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Total Kills</p>
-            <p className="text-xl font-bold text-[#ff5500]">{kills.toLocaleString()}</p>
-          </div>
-          <div className="bg-[#2d2d44]/80 backdrop-blur-sm rounded-xl border border-[#3d3d5c] p-4 text-center">
-            <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">K/D Ratio</p>
-            <p className="text-xl font-bold text-white">{kd}</p>
-          </div>
+        <div className="grid grid-cols-2 gap-3 mb-5">
+          {[
+            { label: 'Win Rate', value: `${winRate}%`, color: 'text-green-400', icon: '📈' },
+            { label: 'Matches', value: matches.toLocaleString(), color: 'text-white', icon: '🎮' },
+            { label: 'Kills', value: kills.toLocaleString(), color: 'text-[#ff5500]', icon: '💀' },
+            { label: 'K/D', value: kd.toString(), color: 'text-blue-400', icon: '⚔️' },
+          ].map((stat, i) => (
+            <div 
+              key={stat.label}
+              className="group relative bg-[#12121a]/90 backdrop-blur-xl rounded-2xl border border-[#1f1f2e] p-4 hover:border-[#ff5500]/20 transition-all duration-500"
+              style={{ animationDelay: `${i * 100}ms` }}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[10px] text-gray-500 uppercase tracking-[0.15em]">{stat.label}</p>
+                <span className="text-sm opacity-50 group-hover:opacity-100 transition-opacity">{stat.icon}</span>
+              </div>
+              <p className={`text-xl font-bold ${stat.color} font-mono`}>{stat.value}</p>
+            </div>
+          ))}
         </div>
 
         {/* Achievement Card */}
-        <div className="bg-gradient-to-r from-[#ff5500]/20 to-[#ff8800]/10 backdrop-blur-sm rounded-xl border border-[#ff5500]/30 p-6 mb-6">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 bg-[#ff5500]/30 rounded-xl flex items-center justify-center flex-shrink-0">
-              <span className="text-2xl">🛴</span>
-            </div>
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="bg-[#ff5500] text-white text-xs font-bold px-2 py-0.5 rounded">TOP-1</span>
-                <span className="text-yellow-400 text-xs">🏆</span>
+        <div className="relative group mb-5">
+          <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/10 to-transparent rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          <div className="relative bg-[#12121a]/90 backdrop-blur-xl rounded-2xl border border-yellow-500/20 p-5 hover:border-yellow-500/40 transition-all duration-500">
+            <div className="flex items-start gap-4">
+              <div className="relative flex-shrink-0">
+                <div className="w-14 h-14 bg-gradient-to-br from-yellow-500/20 to-yellow-600/10 rounded-2xl flex items-center justify-center border border-yellow-500/20">
+                  <span className="text-2xl">🛴</span>
+                </div>
+                <div className="absolute -top-1 -right-1 bg-yellow-500 text-black text-[9px] font-black px-1.5 py-0.5 rounded-md">
+                  #1
+                </div>
               </div>
-              <h3 className="text-lg font-bold text-white mb-1">Топ-1 стантер на Kugoo Wish 04 Pro</h3>
-              <p className="text-gray-400 text-sm">Непревзойдённый мастер электросамокатов. Стоит на одной ноге дольше, чем ты живёшь. Баланс — это не навык, это состояние души.</p>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-black text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider">World Top 1</span>
+                </div>
+                <h3 className="text-base font-bold text-white mb-1.5 leading-tight">Топ-1 стантер на Kugoo Wish 04 Pro</h3>
+                <p className="text-gray-500 text-xs leading-relaxed">Непревзойдённый мастер электросамокатов. Стоит на одной ноге дольше, чем ты живёшь.</p>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* About Section */}
-        <div className="bg-[#2d2d44]/80 backdrop-blur-sm rounded-xl border border-[#3d3d5c] p-6 mb-6">
-          <h3 className="text-lg font-bold mb-3 flex items-center gap-2">
-            <span className="text-[#ff5500]">⚡</span> О себе
-          </h3>
-          <div className="space-y-3 text-gray-300 text-sm leading-relaxed">
-            <p>🎮 CS2 — мой дом. 9 лвл FACEIT — это не случайность, это тысячи часов в aim trainer и бесконечные клатчи 1v4.</p>
-            <p>🛴 Когда не в игре — я на Kugoo Wish 04 Pro. Топ-1 стантер мира. Да, это реальная дисциплина. Нет, ты не сможешь повторить.</p>
-            <p>💀 Мой девиз: "Если не можешь зарешать — стань на одну ногу и медитируй."</p>
-            <p>🔥 Стримлю каждый день. Заходи — будет жарко.</p>
-          </div>
-        </div>
-
-        {/* Social Links */}
-        <div className="bg-[#2d2d44]/80 backdrop-blur-sm rounded-xl border border-[#3d3d5c] p-6 mb-6">
-          <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-            <span className="text-[#ff5500]">🔗</span> Соцсети
-          </h3>
-          <div className="grid grid-cols-2 gap-3">
-            <a href="#" className="flex items-center gap-3 bg-[#1a1a2e] hover:bg-[#1a1a2e]/80 border border-[#3d3d5c] hover:border-[#ff5500]/50 rounded-lg p-3 transition-all duration-200 group">
-              <div className="w-8 h-8 bg-[#5865F2] rounded-lg flex items-center justify-center">
-                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/>
-                </svg>
+        {/* Recent Activity / Fun Facts */}
+        <div className="relative group mb-8">
+          <div className="relative bg-[#12121a]/90 backdrop-blur-xl rounded-2xl border border-[#1f1f2e] p-5 hover:border-[#ff5500]/20 transition-all duration-500">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-1.5 h-1.5 bg-[#ff5500] rounded-full" />
+              <p className="text-[10px] text-gray-500 uppercase tracking-[0.2em] font-medium">Highlights</p>
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-[#ff5500]/10 rounded-lg flex items-center justify-center text-sm flex-shrink-0">🎯</div>
+                <div>
+                  <p className="text-sm text-white font-medium">Ace в клатче 1v5 на Mirage</p>
+                  <p className="text-[10px] text-gray-500">FACEIT Premium • 2 часа назад</p>
+                </div>
               </div>
-              <span className="text-sm text-gray-300 group-hover:text-white transition-colors">Discord</span>
-            </a>
-            <a href="#" className="flex items-center gap-3 bg-[#1a1a2e] hover:bg-[#1a1a2e]/80 border border-[#3d3d5c] hover:border-[#ff5500]/50 rounded-lg p-3 transition-all duration-200 group">
-              <div className="w-8 h-8 bg-[#0088cc] rounded-lg flex items-center justify-center">
-                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
-                </svg>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-yellow-500/10 rounded-lg flex items-center justify-center text-sm flex-shrink-0">🏆</div>
+                <div>
+                  <p className="text-sm text-white font-medium">Подтверждён статус Топ-1 стантера</p>
+                  <p className="text-[10px] text-gray-500">Kugoo Championship • вчера</p>
+                </div>
               </div>
-              <span className="text-sm text-gray-300 group-hover:text-white transition-colors">Telegram</span>
-            </a>
-            <a href="#" className="flex items-center gap-3 bg-[#1a1a2e] hover:bg-[#1a1a2e]/80 border border-[#3d3d5c] hover:border-[#ff5500]/50 rounded-lg p-3 transition-all duration-200 group">
-              <div className="w-8 h-8 bg-[#ff0000] rounded-lg flex items-center justify-center">
-                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                </svg>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-green-500/10 rounded-lg flex items-center justify-center text-sm flex-shrink-0">🔥</div>
+                <div>
+                  <p className="text-sm text-white font-medium">10 побед подряд в пуге</p>
+                  <p className="text-[10px] text-gray-500">FACEIT Hub • 3 дня назад</p>
+                </div>
               </div>
-              <span className="text-sm text-gray-300 group-hover:text-white transition-colors">YouTube</span>
-            </a>
-            <a href="#" className="flex items-center gap-3 bg-[#1a1a2e] hover:bg-[#1a1a2e]/80 border border-[#3d3d5c] hover:border-[#ff5500]/50 rounded-lg p-3 transition-all duration-200 group">
-              <div className="w-8 h-8 bg-[#ff5500] rounded-lg flex items-center justify-center">
-                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                </svg>
-              </div>
-              <span className="text-sm text-gray-300 group-hover:text-white transition-colors">FACEIT</span>
-            </a>
+            </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="text-center py-4">
-          <p className="text-gray-600 text-xs">
-            © 2024 h1nixx • Powered by pure skill & Kugoo Wish 04 Pro
-          </p>
+        <div className="text-center pb-4">
+          <div className="inline-flex items-center gap-2 bg-[#12121a]/50 px-4 py-2 rounded-full border border-[#1f1f2e]">
+            <div className="w-1.5 h-1.5 bg-[#ff5500] rounded-full" />
+            <span className="text-[10px] text-gray-600 uppercase tracking-[0.2em]">h1nixx © 2026</span>
+          </div>
         </div>
       </div>
     </div>
